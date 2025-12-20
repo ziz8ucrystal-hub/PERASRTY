@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itlemas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000000;
+            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #app {
+            height: 100%;
+            position: relative;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .logo {
+            margin-bottom: 40px;
+        }
+
+        .logo-main {
+            font-size: 120px;
+            font-weight: 800;
+            letter-spacing: -4px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+        }
+
+        .logo-subtitle {
+            font-size: 20px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        .description {
+            max-width: 600px;
+            font-size: 18px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 40px;
+            font-weight: 300;
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 60px;
+            font-style: italic;
+            max-width: 500px;
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 3;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(20px);
+            max-width: 300px;
+        }
+
+        .info-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.5;
+        }
+
+        /* تأثيرات النص */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-main {
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        .logo-subtitle {
+            animation: fadeInUp 1.5s ease-out 0.3s both;
+        }
+
+        .description {
+            animation: fadeInUp 1.5s ease-out 0.6s both;
+        }
+
+        .tagline {
+            animation: fadeInUp 1.5s ease-out 0.9s both;
+        }
+
+        /* التجاوب */
+        @media (max-width: 768px) {
+            .logo-main {
+                font-size: 80px;
+                letter-spacing: -2px;
+            }
+            
+            .logo-subtitle {
+                font-size: 16px;
+                letter-spacing: 8px;
+            }
+            
+            .description {
+                font-size: 16px;
+                padding: 0 20px;
+            }
+            
+            .info-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <canvas id="canvas"></canvas>
+        
+        <div class="content">
+            <div class="logo">
+                <h1 class="logo-main">ITLEMAS</h1>
+                <div class="logo-subtitle">THE FUTURE BROWSER</div>
+            </div>
+            
+            <p class="description">
+                <span class="highlight">Itlemas</span> is a next-generation glass browser that combines elegance with performance.
+                With modern design and unique visual effects, we offer a smooth and secure browsing experience.
+            </p>
+            
+            <p class="tagline">
+                "Glass is not just a material, it's a promise of transparency and beauty"
+            </p>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-title">Itlemas Features</div>
+            <div class="info-text">
+                • Advanced glass interface<br>
+                • Ultra-fast performance<br>
+                • Enhanced privacy<br>
+                • Unique visual effects
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import TubesCursor from "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
+
+        // Initialize Tubes effect
+        const app = TubesCursor(document.getElementById('canvas'), {
+            tubes: {
+                colors: ["#007AFF", "#34C759", "#5856D6"], // Professional colors
+                lights: {
+                    intensity: 200,
+                    colors: ["#007AFF", "#34C759", "#FF9500", "#5856D6"]
+                }
+            }
+        })
+
+        // Change colors on click anywhere
+        document.body.addEventListener('click', (e) => {
+            const colors = randomColors(3)
+            const lightsColors = randomColors(4)
+            
+            app.tubes.setColors(colors)
+            app.tubes.setLightsColors(lightsColors)
+        })
+
+        // Generate random professional colors
+        function randomColors(count) {
+            const palettes = [
+                ["#007AFF", "#34C759", "#5856D6", "#FF9500"], // Apple
+                ["#4285F4", "#34A853", "#EA4335", "#FBBC05"], // Google
+                ["#1DA1F2", "#FFAD1F", "#E0245E", "#17BF63"], // Twitter
+                ["#0066CC", "#00CC66", "#CC0066", "#6600CC"]  // Balanced
+            ]
+            
+            const palette = palettes[Math.floor(Math.random() * palettes.length)]
+            return palette.slice(0, count)
+        }
+
+        // Auto color rotation every 30 seconds
+        setTimeout(() => {
+            setInterval(() => {
+                const colors = randomColors(3)
+                const lightsColors = randomColors(4)
+                
+                app.tubes.setColors(colors)
+                app.tubes.setLightsColors(lightsColors)
+            }, 30000)
+        }, 1000)
+    </script>
+</body>
+</html>

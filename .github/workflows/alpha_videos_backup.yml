@@ -23,7 +23,7 @@ jobs:
       - name: 🔧 تجهيز البيئة
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg jq mediainfo
+          sudo apt-get install -y ffmpeg jq
           pip install yt-dlp
 
       - name: 📁 إنشاء المجلدات
@@ -31,12 +31,11 @@ jobs:
           mkdir -p videos
           mkdir -p metadata
 
-      - name: 🎬 تحميل الفيديوهات وجمع المعلومات
+      - name: 🎬 تحميل الفيديوهات
         id: download
         run: |
           cd videos
           
-          # قائمة الفيديوهات (الاسم|الرابط|القسم|الترتيب)
           VIDEOS=(
             "The_Basics_Part_1|https://player.vimeo.com/video/1044120852|Basics of crypto|1"
             "The_Basics_Part_2|https://player.vimeo.com/video/1044120914|Basics of crypto|2"
@@ -71,7 +70,6 @@ jobs:
             "P2_Order_Block_02|https://vimeo.com/1086207587|Order Block|2"
           )
           
-          # وضع الاختبار
           if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
             echo "🧪 وضع الاختبار: فيديو واحد فقط"
             VIDEOS=("${VIDEOS[0]}")
@@ -80,43 +78,23 @@ jobs:
           SUCCESS=0
           FAILED=0
           
-          # مصفوفة لتخزين المعلومات
-          declare -a METADATA
-          
           for video in "${VIDEOS[@]}"; do
-            name="${video%%|*}"
-            url="${video##*|}"
-            section="${video%|*}"
-            section="${section%|*}"
-            order="${video##*|}"
-            
-            # استخراج القسم بشكل صحيح
+            name=$(echo "$video" | cut -d'|' -f1)
+            url=$(echo "$video" | cut -d'|' -f2)
             section=$(echo "$video" | cut -d'|' -f3)
             order=$(echo "$video" | cut -d'|' -f4)
             
             echo ""
-            echo "═══════════════════════════════════════════════════════════"
             echo "🎬 تحميل: $name"
             echo "📂 القسم: $section"
-            echo "🔢 الترتيب: $order"
-            echo "═══════════════════════════════════════════════════════════"
             
-            # تحميل الفيديو
-            if yt-dlp -o "${name}.mp4" "$url" --no-progress 2>&1; then
+            if yt-dlp -o "${name}.mp4" "$url" --no-progress; then
               if [ -f "${name}.mp4" ] && [ $(stat -c%s "${name}.mp4") -gt 1048576 ]; then
-                
-                # استخراج معلومات الفيديو
                 duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | cut -d. -f1)
-                size=$(du -h "${name}.mp4" | cut -f1)
-                bitrate=$(ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null)
-                width=$(ffprobe -v error -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | head -1)
-                height=$(ffprobe -v error -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | head -1)
-                
-                # تحويل المدة إلى دقائق وثواني
                 minutes=$((duration / 60))
                 seconds=$((duration % 60))
+                size=$(du -h "${name}.mp4" | cut -f1)
                 
-                # حفظ المعلومات في JSON
                 cat > "../metadata/${name}.json" << EOF
 {
   "title": "$name",
@@ -125,207 +103,55 @@ jobs:
   "url": "$url",
   "duration_seconds": $duration,
   "duration_formatted": "${minutes}:${seconds}",
-  "file_size_bytes": $(stat -c%s "${name}.mp4"),
-  "file_size_mb": $(echo "scale=2; $(stat -c%s "${name}.mp4") / 1048576" | bc),
-  "resolution": "${width}x${height}",
-  "bitrate": $bitrate,
-  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")",
+  "file_size": "$size",
   "status": "success"
 }
 EOF
-                
-                echo "✅ تم التحميل بنجاح"
-                echo "   📊 المدة: ${minutes}:${seconds}"
-                echo "   💾 الحجم: $size"
-                echo "   📐 الدقة: ${width}x${height}"
-                
+                echo "✅ تم التحميل - المدة: ${minutes}:${seconds} - الحجم: $size"
                 SUCCESS=$((SUCCESS + 1))
               else
-                echo "❌ فشل: الملف تالف"
+                echo "❌ فشل التحميل"
                 FAILED=$((FAILED + 1))
-                
-                # حفظ معلومات الفشل
-                cat > "../metadata/${name}_failed.json" << EOF
-{
-  "title": "$name",
-  "section": "$section",
-  "order": $order,
-  "url": "$url",
-  "status": "failed",
-  "error": "File corrupted or too small",
-  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-}
-EOF
               fi
             else
-              echo "❌ فشل: خطأ في التحميل"
+              echo "❌ فشل التحميل"
               FAILED=$((FAILED + 1))
-              
-              cat > "../metadata/${name}_failed.json" << EOF
-{
-  "title": "$name",
-  "section": "$section",
-  "order": $order,
-  "url": "$url",
-  "status": "failed",
-  "error": "Download error",
-  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-}
-EOF
             fi
           done
-          
-          echo ""
-          echo "═══════════════════════════════════════════════════════════"
-          echo "📊 تقرير التحميل:"
-          echo "   ✅ نجح: $SUCCESS فيديو"
-          echo "   ❌ فشل: $FAILED فيديو"
-          echo "═══════════════════════════════════════════════════════════"
           
           echo "SUCCESS=$SUCCESS" >> $GITHUB_OUTPUT
           echo "FAILED=$FAILED" >> $GITHUB_OUTPUT
 
-      - name: 📝 إنشاء ملف معلومات شامل (metadata.json)
+      - name: 📝 إنشاء ملف metadata
         run: |
           cd metadata
-          
-          # دمج كل ملفات JSON في ملف واحد
-          echo '{"videos": [' > all_metadata.json
-          first=true
+          echo "title,section,duration,size,status" > metadata.csv
           for file in *.json; do
-            if [ "$first" = true ]; then
-              first=false
-            else
-              echo ',' >> all_metadata.json
-            fi
-            cat "$file" >> all_metadata.json
-          done
-          echo ']}' >> all_metadata.json
-          
-          # إنشاء ملف CSV للقراءة السهلة
-          echo "العنوان,القسم,الترتيب,المدة,الحجم,الدقة,الحالة,تاريخ النسخ" > metadata.csv
-          for file in *.json; do
-            if [[ "$file" != "all_metadata.json" ]]; then
+            if [ -f "$file" ]; then
               title=$(jq -r '.title' "$file" 2>/dev/null || echo "unknown")
               section=$(jq -r '.section' "$file" 2>/dev/null || echo "unknown")
-              order=$(jq -r '.order' "$file" 2>/dev/null || echo "0")
               duration=$(jq -r '.duration_formatted' "$file" 2>/dev/null || echo "00:00")
-              size=$(jq -r '.file_size_mb' "$file" 2>/dev/null || echo "0")
-              resolution=$(jq -r '.resolution' "$file" 2>/dev/null || echo "unknown")
+              size=$(jq -r '.file_size' "$file" 2>/dev/null || echo "0")
               status=$(jq -r '.status' "$file" 2>/dev/null || echo "unknown")
-              date=$(jq -r '.backup_date' "$file" 2>/dev/null || echo "unknown")
-              echo "\"$title\",\"$section\",$order,\"$duration\",\"${size} MB\",\"$resolution\",\"$status\",\"$date\"" >> metadata.csv
+              echo "\"$title\",\"$section\",\"$duration\",\"$size\",\"$status\"" >> metadata.csv
             fi
           done
-          
-          echo "✅ تم إنشاء ملفات المعلومات:"
-          echo "   📄 all_metadata.json - جميع المعلومات بتنسيق JSON"
-          echo "   📊 metadata.csv - جدول Excel جاهز"
-          echo "   📁 ملفات فردية لكل فيديو"
 
-      - name: 📤 رفع الفيديوهات إلى Google Drive
-        if: steps.download.outputs.SUCCESS > 0
+      - name: 📤 رفع إلى Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
         with:
-          target: "videos/*.mp4"
+          target: "videos/*.mp4,metadata/*.csv,metadata/*.json"
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
           parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
 
-      - name: 📄 رفع ملفات المعلومات إلى Google Drive
-        if: steps.download.outputs.SUCCESS > 0
-        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
-        with:
-          target: "metadata/*.json,metadata/*.csv"
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
-
-      - name: 📊 إنشاء تقرير HTML
-        run: |
-          cat > report.html << 'EOF'
-<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقرير فيديوهات Alpha University</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        h1 { color: #333; text-align: center; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .video-card { background: white; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .video-title { font-size: 18px; font-weight: bold; color: #2196F3; }
-        .video-info { margin-top: 10px; color: #666; display: flex; flex-wrap: wrap; gap: 15px; }
-        .info-badge { background: #e0e0e0; padding: 3px 10px; border-radius: 15px; font-size: 12px; }
-        .success { color: green; }
-        .failed { color: red; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>📹 تقرير نسخ فيديوهات Alpha University الاحتياطي</h1>
-        <div id="content"></div>
-    </div>
-    <script>
-        fetch('metadata/all_metadata.json')
-            .then(r => r.json())
-            .then(data => {
-                const container = document.getElementById('content');
-                const videos = data.videos || [];
-                const successVideos = videos.filter(v => v.status === 'success');
-                const failedVideos = videos.filter(v => v.status === 'failed');
-                
-                container.innerHTML = `
-                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                        <h2>📊 إحصائيات النسخ الاحتياطي</h2>
-                        <p>✅ نجح: ${successVideos.length} فيديو</p>
-                        <p>❌ فشل: ${failedVideos.length} فيديو</p>
-                        <p>📅 تاريخ النسخ: ${new Date().toLocaleDateString('ar')}</p>
-                    </div>
-                    <h2>📹 قائمة الفيديوهات</h2>
-                    ${videos.map(video => `
-                        <div class="video-card">
-                            <div class="video-title">${video.title || 'بدون عنوان'}</div>
-                            <div class="video-info">
-                                <span class="info-badge">📂 ${video.section || 'بدون قسم'}</span>
-                                <span class="info-badge">⏱️ ${video.duration_formatted || '00:00'}</span>
-                                <span class="info-badge">💾 ${video.file_size_mb || 0} MB</span>
-                                <span class="info-badge">📐 ${video.resolution || 'unknown'}</span>
-                                <span class="info-badge ${video.status === 'success' ? 'success' : 'failed'}">${video.status === 'success' ? '✅ تم النسخ' : '❌ فشل'}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                `;
-            });
-    </script>
-</body>
-</html>
-EOF
-
-      - name: 📤 رفع التقرير إلى Google Drive
-        if: steps.download.outputs.SUCCESS > 0
-        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
-        with:
-          target: "report.html"
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
-
-      - name: ✅ عرض التقرير النهائي
+      - name: ✅ التقرير النهائي
         run: |
           echo ""
           echo "═══════════════════════════════════════════════════════════"
-          echo "✅ اكتملت عملية النسخ الاحتياطي!"
+          echo "✅ اكتملت العملية!"
           echo "═══════════════════════════════════════════════════════════"
+          echo "📊 النتائج:"
+          echo "   ✅ نجح: ${{ steps.download.outputs.SUCCESS }} فيديو"
+          echo "   ❌ فشل: ${{ steps.download.outputs.FAILED }} فيديو"
           echo ""
-          echo "📊 الإحصائيات:"
-          echo "   ✅ فيديوهات نجحت: ${{ steps.download.outputs.SUCCESS }}"
-          echo "   ❌ فيديوهات فشلت: ${{ steps.download.outputs.FAILED }}"
-          echo ""
-          echo "📁 الملفات المخزنة في Google Drive:"
-          echo "   🎬 الفيديوهات: مجلد videos/"
-          echo "   📄 المعلومات: مجلد metadata/ (JSON + CSV)"
-          echo "   📊 التقرير: report.html"
-          echo ""
-          echo "🔗 رابط المجلد:"
-          echo "   https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
-          echo ""
-          echo "═══════════════════════════════════════════════════════════"
+          echo "📁 Google Drive: https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"

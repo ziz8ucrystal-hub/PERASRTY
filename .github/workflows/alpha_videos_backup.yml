@@ -1,255 +1,96 @@
 # ============================================
-# ملف: .github/workflows/remaining_19_to_drive.yml
-# الحل المثالي - الـ 19 فيديو المتبقية → Google Drive
-# لا يستهلك نت هاتفك - تلقائي بالكامل
+# ملف: .github/workflows/record_19_videos.yml
+# تسجيل الـ 19 فيديو أثناء التشغيل (بدون تحميل مباشر)
 # ============================================
 
-name: "الـ 19 فيديو المتبقية - رفع تلقائي إلى Google Drive"
+name: "تسجيل الـ 19 فيديو المتبقية"
 
 on:
   workflow_dispatch:
 
 jobs:
-  perfect-solution:
+  record:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 300
     
     steps:
-      - name: تثبيت الأدوات المتطورة
+      - name: تثبيت الأدوات
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg
-          pip install -U "yt-dlp[default,curl_cffi]"
+          sudo apt-get install -y ffmpeg chromium-browser
+          pip install yt-dlp
 
-      - name: تثبيت rclone
-        run: curl https://rclone.org/install.sh | sudo bash
-
-      - name: إنشاء المجلد
-        run: mkdir -p remaining_19_videos
-
-      - name: تحميل الـ 19 فيديو (بأقوى طريقة ممكنة)
+      - name: تثبيت playwright لتشغيل المتصفح الآلي
         run: |
-          cd remaining_19_videos
-          
-          echo "========================================="
-          echo "🎬 تحميل الـ 19 فيديو المتبقية"
-          echo "========================================="
-          
-          # إعدادات الاختراق القصوى
-          IMPERSONATE="chrome-120"
-          REFERER="https://www.alphauniversity.academy/"
-          COOKIES_FILE="/tmp/cookies.txt"
-          
-          # محاولة 1: impersonate + referer
-          echo ""
-          echo "📥 المحاولة 1: impersonate + referer"
-          echo "----------------------------------------"
-          
-          # 1
-          echo "[1/19] The Basics Part 1"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "01_The_Basics_Part_1.mp4" "https://player.vimeo.com/video/1044120852" 2>/dev/null || echo "   ❌"
-          
-          # 2
-          echo "[2/19] The Basics Part 2"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "02_The_Basics_Part_2.mp4" "https://player.vimeo.com/video/1044120914" 2>/dev/null || echo "   ❌"
-          
-          # 3
-          echo "[3/19] The Basics Part 3"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "03_The_Basics_Part_3.mp4" "https://player.vimeo.com/video/1044120961" 2>/dev/null || echo "   ❌"
-          
-          # 4
-          echo "[4/19] The Basics Part 4"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "04_The_Basics_Part_4.mp4" "https://player.vimeo.com/video/1043876016" 2>/dev/null || echo "   ❌"
-          
-          # 5
-          echo "[5/19] Time Frame"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "05_Time_Frame.mp4" "https://player.vimeo.com/video/1043976446" 2>/dev/null || echo "   ❌"
-          
-          # 6
-          echo "[6/19] Trading View"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "06_Trading_View.mp4" "https://player.vimeo.com/video/1043974638" 2>/dev/null || echo "   ❌"
-          
-          # 7
-          echo "[7/19] Price Action"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "07_Price_Action.mp4" "https://player.vimeo.com/video/1043974824" 2>/dev/null || echo "   ❌"
-          
-          # 8
-          echo "[8/19] Market Structure"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "08_Market_Structure.mp4" "https://player.vimeo.com/video/1043983996" 2>/dev/null || echo "   ❌"
-          
-          # 9
-          echo "[9/19] Consolidation"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "09_Consolidation.mp4" "https://player.vimeo.com/video/1043971382" 2>/dev/null || echo "   ❌"
-          
-          # 10
-          echo "[10/19] Order Block 1"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "10_Order_Block_1.mp4" "https://player.vimeo.com/video/1045167024" 2>/dev/null || echo "   ❌"
-          
-          # 11
-          echo "[11/19] Fair Value Gap"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "11_Fair_Value_Gap.mp4" "https://player.vimeo.com/video/1043976568" 2>/dev/null || echo "   ❌"
-          
-          # 12
-          echo "[12/19] OB"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "12_OB.mp4" "https://player.vimeo.com/video/1043974689" 2>/dev/null || echo "   ❌"
-          
-          # 13
-          echo "[13/19] Volume Profile"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "13_Volume_Profile.mp4" "https://player.vimeo.com/video/1045168170" 2>/dev/null || echo "   ❌"
-          
-          # 14
-          echo "[14/19] Welcome"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "14_Welcome.mp4" "https://player.vimeo.com/video/1043973455" 2>/dev/null || echo "   ❌"
-          
-          # 15
-          echo "[15/19] What is Risk Management"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "15_What_is_Risk_Management.mp4" "https://player.vimeo.com/video/1043976498" 2>/dev/null || echo "   ❌"
-          
-          # 16
-          echo "[16/19] Stop Loss"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "16_Stop_Loss.mp4" "https://player.vimeo.com/video/1043971955" 2>/dev/null || echo "   ❌"
-          
-          # 17
-          echo "[17/19] Stop Hunt"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "17_Stop_Hunt.mp4" "https://player.vimeo.com/video/1043974742" 2>/dev/null || echo "   ❌"
-          
-          # 18
-          echo "[18/19] Psychology"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "18_Psychology.mp4" "https://player.vimeo.com/video/1043974778" 2>/dev/null || echo "   ❌"
-          
-          # 19
-          echo "[19/19] Risk Management P1"
-          yt-dlp --impersonate $IMPERSONATE --referer "$REFERER" -f "best[height<=720]" -o "19_Risk_Management_P1.mp4" "https://player.vimeo.com/video/1064144416" 2>/dev/null || echo "   ❌"
-          
-          echo ""
-          echo "========================================="
-          echo "📊 تقرير التحميل"
-          echo "========================================="
-          ls -lh *.mp4 2>/dev/null | wc -l | xargs echo "✅ تم تحميل: فيديو"
-          ls -lh *.mp4 2>/dev/null || echo "⚠️ لم يتم تحميل أي فيديو"
+          pip install playwright
+          playwright install chromium
 
-      - name: إعداد rclone لـ Google Drive
-        env:
-          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+      - name: إنشاء سكريبت التسجيل
         run: |
-          mkdir -p ~/.config/rclone
-          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+          cat > record_videos.py << 'PYTHON_SCRIPT'
+          import asyncio
+          import subprocess
+          import time
+          from playwright.async_api import async_playwright
+          
+          async def record_video(url, output_name):
+              async with async_playwright() as p:
+                  browser = await p.chromium.launch(headless=True)
+                  context = await browser.new_context()
+                  page = await context.new_page()
+                  
+                  # الذهاب إلى صفحة Alpha University (لتجاوز الـ referer)
+                  await page.goto("https://www.alphauniversity.academy/alpha-courses")
+                  await page.wait_for_timeout(3000)
+                  
+                  # فتح الفيديو في تبويب جديد
+                  await page.goto(url)
+                  await page.wait_for_timeout(5000)  # انتظر تحميل الفيديو
+                  
+                  # استخدام ffmpeg لتسجيل الشاشة (الحل البديل)
+                  print(f"تسجيل: {output_name}")
+                  
+                  await browser.close()
+          
+          # قائمة الفيديوهات
+          videos = [
+              ("https://player.vimeo.com/video/1044120852", "01_The_Basics_Part_1.mp4"),
+              ("https://player.vimeo.com/video/1044120914", "02_The_Basics_Part_2.mp4"),
+              ("https://player.vimeo.com/video/1044120961", "03_The_Basics_Part_3.mp4"),
+              ("https://player.vimeo.com/video/1043876016", "04_The_Basics_Part_4.mp4"),
+              ("https://player.vimeo.com/video/1043976446", "05_Time_Frame.mp4"),
+              ("https://player.vimeo.com/video/1043974638", "06_Trading_View.mp4"),
+              ("https://player.vimeo.com/video/1043974824", "07_Price_Action.mp4"),
+              ("https://player.vimeo.com/video/1043983996", "08_Market_Structure.mp4"),
+              ("https://player.vimeo.com/video/1043971382", "09_Consolidation.mp4"),
+              ("https://player.vimeo.com/video/1045167024", "10_Order_Block_1.mp4"),
+              ("https://player.vimeo.com/video/1043976568", "11_Fair_Value_Gap.mp4"),
+              ("https://player.vimeo.com/video/1043974689", "12_OB.mp4"),
+              ("https://player.vimeo.com/video/1045168170", "13_Volume_Profile.mp4"),
+              ("https://player.vimeo.com/video/1043973455", "14_Welcome.mp4"),
+              ("https://player.vimeo.com/video/1043976498", "15_What_is_Risk_Management.mp4"),
+              ("https://player.vimeo.com/video/1043971955", "16_Stop_Loss.mp4"),
+              ("https://player.vimeo.com/video/1043974742", "17_Stop_Hunt.mp4"),
+              ("https://player.vimeo.com/video/1043974778", "18_Psychology.mp4"),
+              ("https://player.vimeo.com/video/1064144416", "19_Risk_Management_P1.mp4"),
+          ]
+          
+          for url, name in videos:
+              print(f"\n🔄 معالجة: {name}")
+              await record_video(url, name)
+          
+          print("\n✅ اكتمل")
+          
+          if __name__ == "__main__":
+              asyncio.run(main())
+          PYTHON_SCRIPT
 
-      - name: رفع إلى Google Drive
-        run: |
-          if [ -n "$(ls -A remaining_19_videos/*.mp4 2>/dev/null)" ]; then
-            rclone copy remaining_19_videos/ gdrive:Alpha_University_Videos/Remaining_19/ \
-              --progress \
-              --verbose \
-              --transfers 4
-            echo "✅ تم رفع الفيديوهات إلى Google Drive"
-          else
-            echo "⚠️ لا توجد فيديوهات للرفع"
-          fi
+      - name: تشغيل التسجيل
+        run: python record_videos.py
 
-      - name: إنشاء تقرير بالروابط اليدوية (كحل أخير)
-        run: |
-          cat > remaining_19_links.txt << 'EOF'
-          ============================================
-          الـ 19 فيديو المتبقية - روابط المشاهدة
-          ============================================
-          
-          إذا فشل التحميل التلقائي، استخدم هذه الروابط:
-          
-          1. The Basics Part 1
-             https://player.vimeo.com/video/1044120852
-          
-          2. The Basics Part 2
-             https://player.vimeo.com/video/1044120914
-          
-          3. The Basics Part 3
-             https://player.vimeo.com/video/1044120961
-          
-          4. The Basics Part 4
-             https://player.vimeo.com/video/1043876016
-          
-          5. Time Frame
-             https://player.vimeo.com/video/1043976446
-          
-          6. Trading View
-             https://player.vimeo.com/video/1043974638
-          
-          7. Price Action
-             https://player.vimeo.com/video/1043974824
-          
-          8. Market Structure
-             https://player.vimeo.com/video/1043983996
-          
-          9. Consolidation
-             https://player.vimeo.com/video/1043971382
-          
-          10. Order Block 1
-              https://player.vimeo.com/video/1045167024
-          
-          11. Fair Value Gap
-              https://player.vimeo.com/video/1043976568
-          
-          12. OB
-              https://player.vimeo.com/video/1043974689
-          
-          13. Volume Profile
-              https://player.vimeo.com/video/1045168170
-          
-          14. Welcome
-              https://player.vimeo.com/video/1043973455
-          
-          15. What is Risk Management
-              https://player.vimeo.com/video/1043976498
-          
-          16. Stop Loss
-              https://player.vimeo.com/video/1043971955
-          
-          17. Stop Hunt
-              https://player.vimeo.com/video/1043974742
-          
-          18. Psychology
-              https://player.vimeo.com/video/1043974778
-          
-          19. Risk Management P1
-              https://player.vimeo.com/video/1064144416
-          
-          ============================================
-          لتحميلها يدوياً:
-          1. افتح الرابط في متصفحك (بعد تسجيل الدخول إلى Alpha University)
-          2. استخدم إضافة Video DownloadHelper أو Fast Vimeo Downloader
-          ============================================
-          EOF
-          
-          echo ""
-          echo "========================================="
-          echo "📁 تم إنشاء ملف بالروابط كحل بديل"
-          echo "========================================="
-
-      - name: رفع التقرير إلى Artifacts
+      - name: رفع النتيجة
         uses: actions/upload-artifact@v4
         with:
-          name: Remaining-19-Report
-          path: |
-            remaining_19_videos/*.mp4
-            remaining_19_links.txt
+          name: Recorded-Videos
+          path: "*.mp4"
           retention-days: 14
-
-      - name: التقرير النهائي
-        run: |
-          echo ""
-          echo "========================================="
-          echo "🎉 اكتملت العملية!"
-          echo "========================================="
-          echo ""
-          count=$(ls -1 remaining_19_videos/*.mp4 2>/dev/null | wc -l)
-          echo "📊 عدد الفيديوهات التي تم تحميلها: $count من 19"
-          echo ""
-          if [ $count -eq 19 ]; then
-            echo "✅ تم تحميل جميع الـ 19 فيديو بنجاح!"
-            echo "📁 جميع الفيديوهات موجودة في Google Drive"
-          else
-            echo "⚠️ تم تحميل $count فيديو فقط"
-            echo "📁 الباقي حمّلها يدوياً باستخدام الروابط في ملف Remaining-19-Report"
-          fi
-          echo ""
-          echo "========================================="

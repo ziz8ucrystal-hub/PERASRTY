@@ -1,0 +1,331 @@
+# اسم الملف: alpha_videos_backup.yml
+
+name: "🎬 Alpha University - النسخ الاحتياطي الكامل للفيديوهات"
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: '🧪 وضع الاختبار (فيديو واحد فقط)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    
+    steps:
+      - name: 🔧 تجهيز البيئة
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg jq mediainfo
+          pip install yt-dlp
+
+      - name: 📁 إنشاء المجلدات
+        run: |
+          mkdir -p videos
+          mkdir -p metadata
+
+      - name: 🎬 تحميل الفيديوهات وجمع المعلومات
+        id: download
+        run: |
+          cd videos
+          
+          # قائمة الفيديوهات (الاسم|الرابط|القسم|الترتيب)
+          VIDEOS=(
+            "The_Basics_Part_1|https://player.vimeo.com/video/1044120852|Basics of crypto|1"
+            "The_Basics_Part_2|https://player.vimeo.com/video/1044120914|Basics of crypto|2"
+            "The_Basics_Part_3|https://player.vimeo.com/video/1044120961|Basics of crypto|3"
+            "The_Basics_Part_4|https://player.vimeo.com/video/1043876016|Basics of crypto|4"
+            "Time_Frame|https://player.vimeo.com/video/1043976446|Basics of crypto|5"
+            "Trading_View|https://player.vimeo.com/video/1043974638|Basics of crypto|6"
+            "Price_Action|https://player.vimeo.com/video/1043974824|Alpha technical analyses|1"
+            "Market_Structure|https://player.vimeo.com/video/1043983996|Alpha technical analyses|2"
+            "Consolidation|https://player.vimeo.com/video/1043971382|Alpha technical analyses|3"
+            "Order_Block_1|https://player.vimeo.com/video/1045167024|Alpha technical analyses|4"
+            "Fair_Value_Gap|https://player.vimeo.com/video/1043976568|Alpha technical analyses|5"
+            "OB|https://player.vimeo.com/video/1043974689|Alpha technical analyses|6"
+            "Volume_Profile|https://player.vimeo.com/video/1045168170|Alpha technical analyses|7"
+            "Welcome|https://player.vimeo.com/video/1043973455|Risk management|1"
+            "What_is_Risk_Management|https://player.vimeo.com/video/1043976498|Risk management|2"
+            "Stop_Loss|https://player.vimeo.com/video/1043971955|Risk management|3"
+            "Stop_Hunt|https://player.vimeo.com/video/1043974742|Risk management|4"
+            "Psychology|https://player.vimeo.com/video/1043974778|Risk management|5"
+            "Risk_Management_P1|https://player.vimeo.com/video/1064144416|Risk management|6"
+            "P1_Psychology1|https://vimeo.com/1086214885|Psychology|1"
+            "p2_Psychology2|https://vimeo.com/1086214933|Psychology|2"
+            "P2_Pric_Actioon|https://vimeo.com/1086211587|Price Action|1"
+            "P1_Price_Action_01|https://vimeo.com/1086211265|Price Action|2"
+            "P1_Stop_Hunt_01|https://vimeo.com/1086215569|Stop Hunt|1"
+            "P2_Stop_Hunt_02|https://vimeo.com/1086215684|Stop Hunt|2"
+            "P1_Tp|https://vimeo.com/1086215458|Take Profit|1"
+            "P2_Tpsl02|https://vimeo.com/1086215516|Take Profit|2"
+            "P1_Volume_P_01|https://vimeo.com/1086209786|Volume Profile|1"
+            "P2_Volume_P_02|https://vimeo.com/1086210242/7b545c33d4|Volume Profile|2"
+            "P1_Order_Block_01|https://vimeo.com/1086207541|Order Block|1"
+            "P2_Order_Block_02|https://vimeo.com/1086207587|Order Block|2"
+          )
+          
+          # وضع الاختبار
+          if [ "${{ github.event.inputs.test_mode }}" = "true" ]; then
+            echo "🧪 وضع الاختبار: فيديو واحد فقط"
+            VIDEOS=("${VIDEOS[0]}")
+          fi
+          
+          SUCCESS=0
+          FAILED=0
+          
+          # مصفوفة لتخزين المعلومات
+          declare -a METADATA
+          
+          for video in "${VIDEOS[@]}"; do
+            name="${video%%|*}"
+            url="${video##*|}"
+            section="${video%|*}"
+            section="${section%|*}"
+            order="${video##*|}"
+            
+            # استخراج القسم بشكل صحيح
+            section=$(echo "$video" | cut -d'|' -f3)
+            order=$(echo "$video" | cut -d'|' -f4)
+            
+            echo ""
+            echo "═══════════════════════════════════════════════════════════"
+            echo "🎬 تحميل: $name"
+            echo "📂 القسم: $section"
+            echo "🔢 الترتيب: $order"
+            echo "═══════════════════════════════════════════════════════════"
+            
+            # تحميل الفيديو
+            if yt-dlp -o "${name}.mp4" "$url" --no-progress 2>&1; then
+              if [ -f "${name}.mp4" ] && [ $(stat -c%s "${name}.mp4") -gt 1048576 ]; then
+                
+                # استخراج معلومات الفيديو
+                duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | cut -d. -f1)
+                size=$(du -h "${name}.mp4" | cut -f1)
+                bitrate=$(ffprobe -v error -show_entries format=bit_rate -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null)
+                width=$(ffprobe -v error -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | head -1)
+                height=$(ffprobe -v error -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 "${name}.mp4" 2>/dev/null | head -1)
+                
+                # تحويل المدة إلى دقائق وثواني
+                minutes=$((duration / 60))
+                seconds=$((duration % 60))
+                
+                # حفظ المعلومات في JSON
+                cat > "../metadata/${name}.json" << EOF
+{
+  "title": "$name",
+  "section": "$section",
+  "order": $order,
+  "url": "$url",
+  "duration_seconds": $duration,
+  "duration_formatted": "${minutes}:${seconds}",
+  "file_size_bytes": $(stat -c%s "${name}.mp4"),
+  "file_size_mb": $(echo "scale=2; $(stat -c%s "${name}.mp4") / 1048576" | bc),
+  "resolution": "${width}x${height}",
+  "bitrate": $bitrate,
+  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")",
+  "status": "success"
+}
+EOF
+                
+                echo "✅ تم التحميل بنجاح"
+                echo "   📊 المدة: ${minutes}:${seconds}"
+                echo "   💾 الحجم: $size"
+                echo "   📐 الدقة: ${width}x${height}"
+                
+                SUCCESS=$((SUCCESS + 1))
+              else
+                echo "❌ فشل: الملف تالف"
+                FAILED=$((FAILED + 1))
+                
+                # حفظ معلومات الفشل
+                cat > "../metadata/${name}_failed.json" << EOF
+{
+  "title": "$name",
+  "section": "$section",
+  "order": $order,
+  "url": "$url",
+  "status": "failed",
+  "error": "File corrupted or too small",
+  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+}
+EOF
+              fi
+            else
+              echo "❌ فشل: خطأ في التحميل"
+              FAILED=$((FAILED + 1))
+              
+              cat > "../metadata/${name}_failed.json" << EOF
+{
+  "title": "$name",
+  "section": "$section",
+  "order": $order,
+  "url": "$url",
+  "status": "failed",
+  "error": "Download error",
+  "backup_date": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+}
+EOF
+            fi
+          done
+          
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"
+          echo "📊 تقرير التحميل:"
+          echo "   ✅ نجح: $SUCCESS فيديو"
+          echo "   ❌ فشل: $FAILED فيديو"
+          echo "═══════════════════════════════════════════════════════════"
+          
+          echo "SUCCESS=$SUCCESS" >> $GITHUB_OUTPUT
+          echo "FAILED=$FAILED" >> $GITHUB_OUTPUT
+
+      - name: 📝 إنشاء ملف معلومات شامل (metadata.json)
+        run: |
+          cd metadata
+          
+          # دمج كل ملفات JSON في ملف واحد
+          echo '{"videos": [' > all_metadata.json
+          first=true
+          for file in *.json; do
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo ',' >> all_metadata.json
+            fi
+            cat "$file" >> all_metadata.json
+          done
+          echo ']}' >> all_metadata.json
+          
+          # إنشاء ملف CSV للقراءة السهلة
+          echo "العنوان,القسم,الترتيب,المدة,الحجم,الدقة,الحالة,تاريخ النسخ" > metadata.csv
+          for file in *.json; do
+            if [[ "$file" != "all_metadata.json" ]]; then
+              title=$(jq -r '.title' "$file" 2>/dev/null || echo "unknown")
+              section=$(jq -r '.section' "$file" 2>/dev/null || echo "unknown")
+              order=$(jq -r '.order' "$file" 2>/dev/null || echo "0")
+              duration=$(jq -r '.duration_formatted' "$file" 2>/dev/null || echo "00:00")
+              size=$(jq -r '.file_size_mb' "$file" 2>/dev/null || echo "0")
+              resolution=$(jq -r '.resolution' "$file" 2>/dev/null || echo "unknown")
+              status=$(jq -r '.status' "$file" 2>/dev/null || echo "unknown")
+              date=$(jq -r '.backup_date' "$file" 2>/dev/null || echo "unknown")
+              echo "\"$title\",\"$section\",$order,\"$duration\",\"${size} MB\",\"$resolution\",\"$status\",\"$date\"" >> metadata.csv
+            fi
+          done
+          
+          echo "✅ تم إنشاء ملفات المعلومات:"
+          echo "   📄 all_metadata.json - جميع المعلومات بتنسيق JSON"
+          echo "   📊 metadata.csv - جدول Excel جاهز"
+          echo "   📁 ملفات فردية لكل فيديو"
+
+      - name: 📤 رفع الفيديوهات إلى Google Drive
+        if: steps.download.outputs.SUCCESS > 0
+        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
+        with:
+          target: "videos/*.mp4"
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
+
+      - name: 📄 رفع ملفات المعلومات إلى Google Drive
+        if: steps.download.outputs.SUCCESS > 0
+        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
+        with:
+          target: "metadata/*.json,metadata/*.csv"
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
+
+      - name: 📊 إنشاء تقرير HTML
+        run: |
+          cat > report.html << 'EOF'
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير فيديوهات Alpha University</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        h1 { color: #333; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .video-card { background: white; margin: 10px 0; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .video-title { font-size: 18px; font-weight: bold; color: #2196F3; }
+        .video-info { margin-top: 10px; color: #666; display: flex; flex-wrap: wrap; gap: 15px; }
+        .info-badge { background: #e0e0e0; padding: 3px 10px; border-radius: 15px; font-size: 12px; }
+        .success { color: green; }
+        .failed { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📹 تقرير نسخ فيديوهات Alpha University الاحتياطي</h1>
+        <div id="content"></div>
+    </div>
+    <script>
+        fetch('metadata/all_metadata.json')
+            .then(r => r.json())
+            .then(data => {
+                const container = document.getElementById('content');
+                const videos = data.videos || [];
+                const successVideos = videos.filter(v => v.status === 'success');
+                const failedVideos = videos.filter(v => v.status === 'failed');
+                
+                container.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h2>📊 إحصائيات النسخ الاحتياطي</h2>
+                        <p>✅ نجح: ${successVideos.length} فيديو</p>
+                        <p>❌ فشل: ${failedVideos.length} فيديو</p>
+                        <p>📅 تاريخ النسخ: ${new Date().toLocaleDateString('ar')}</p>
+                    </div>
+                    <h2>📹 قائمة الفيديوهات</h2>
+                    ${videos.map(video => `
+                        <div class="video-card">
+                            <div class="video-title">${video.title || 'بدون عنوان'}</div>
+                            <div class="video-info">
+                                <span class="info-badge">📂 ${video.section || 'بدون قسم'}</span>
+                                <span class="info-badge">⏱️ ${video.duration_formatted || '00:00'}</span>
+                                <span class="info-badge">💾 ${video.file_size_mb || 0} MB</span>
+                                <span class="info-badge">📐 ${video.resolution || 'unknown'}</span>
+                                <span class="info-badge ${video.status === 'success' ? 'success' : 'failed'}">${video.status === 'success' ? '✅ تم النسخ' : '❌ فشل'}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            });
+    </script>
+</body>
+</html>
+EOF
+
+      - name: 📤 رفع التقرير إلى Google Drive
+        if: steps.download.outputs.SUCCESS > 0
+        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
+        with:
+          target: "report.html"
+          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
+          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
+
+      - name: ✅ عرض التقرير النهائي
+        run: |
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"
+          echo "✅ اكتملت عملية النسخ الاحتياطي!"
+          echo "═══════════════════════════════════════════════════════════"
+          echo ""
+          echo "📊 الإحصائيات:"
+          echo "   ✅ فيديوهات نجحت: ${{ steps.download.outputs.SUCCESS }}"
+          echo "   ❌ فيديوهات فشلت: ${{ steps.download.outputs.FAILED }}"
+          echo ""
+          echo "📁 الملفات المخزنة في Google Drive:"
+          echo "   🎬 الفيديوهات: مجلد videos/"
+          echo "   📄 المعلومات: مجلد metadata/ (JSON + CSV)"
+          echo "   📊 التقرير: report.html"
+          echo ""
+          echo "🔗 رابط المجلد:"
+          echo "   https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
+          echo ""
+          echo "═══════════════════════════════════════════════════════════"

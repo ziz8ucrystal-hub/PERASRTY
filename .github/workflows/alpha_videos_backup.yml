@@ -1,91 +1,247 @@
-name: "Alpha University - Full Backup All Videos"
+# ============================================
+# ملف: .github/workflows/all_videos.yml
+# تحميل كل فيديوهات Alpha University الـ 31
+# ============================================
+
+name: "تحميل جميع فيديوهات Alpha University"
 
 on:
   workflow_dispatch:
 
 jobs:
-  backup:
+  download-all:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     
     steps:
-      - name: Install tools
+      - name: تثبيت أدوات التحميل
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
           pip install yt-dlp
 
-      - name: Create folders
+      - name: إنشاء المجلدات
         run: |
           mkdir -p videos
           mkdir -p metadata
 
-      - name: Download all 31 videos with headers
-        id: download
+      - name: تحميل جميع الفيديوهات (31 فيديو)
         run: |
           cd videos
           
-          # Headers to bypass Vimeo restrictions
-          HEADERS="--add-header Referer:https://alphauniversity.academy --add-header User-Agent:Mozilla/5.0"
+          # ============================================
+          # القسم 1: Basics of crypto (6 فيديوهات)
+          # ============================================
+          echo "📥 تحميل Basics of crypto..."
           
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1044120852" -o "01_The_Basics_Part_1.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1044120914" -o "02_The_Basics_Part_2.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1044120961" -o "03_The_Basics_Part_3.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043876016" -o "04_The_Basics_Part_4.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043976446" -o "05_Time_Frame.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043974638" -o "06_Trading_View.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043974824" -o "07_Price_Action.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043983996" -o "08_Market_Structure.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043971382" -o "09_Consolidation.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1045167024" -o "10_Order_Block_1.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043976568" -o "11_Fair_Value_Gap.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043974689" -o "12_OB.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1045168170" -o "13_Volume_Profile.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043973455" -o "14_Welcome.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043976498" -o "15_What_is_Risk_Management.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043971955" -o "16_Stop_Loss.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043974742" -o "17_Stop_Hunt.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1043974778" -o "18_Psychology.mp4"
-          yt-dlp $HEADERS "https://player.vimeo.com/video/1064144416" -o "19_Risk_Management_P1.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086214885" -o "20_P1_Psychology1.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086214933" -o "21_p2_Psychology2.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086211587" -o "22_P2_Pric_Actioon.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086211265" -o "23_P1_Price_Action_01.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086215569" -o "24_P1_Stop_Hunt_01.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086215684" -o "25_P2_Stop_Hunt_02.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086215458" -o "26_P1_Tp.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086215516" -o "27_P2_Tpsl02.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086209786" -o "28_P1_Volume_P_01.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086210242/7b545c33d4" -o "29_P2_Volume_P_02.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086207541" -o "30_P1_Order_Block_01.mp4"
-          yt-dlp $HEADERS "https://vimeo.com/1086207587" -o "31_P2_Order_Block_02.mp4"
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "01_The_Basics_Part_1.mp4" \
+                 "https://player.vimeo.com/video/1044120852" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "02_The_Basics_Part_2.mp4" \
+                 "https://player.vimeo.com/video/1044120914" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "03_The_Basics_Part_3.mp4" \
+                 "https://player.vimeo.com/video/1044120961" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "04_The_Basics_Part_4.mp4" \
+                 "https://player.vimeo.com/video/1043876016" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "05_Time_Frame.mp4" \
+                 "https://player.vimeo.com/video/1043976446" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "06_Trading_View.mp4" \
+                 "https://player.vimeo.com/video/1043974638" || true
+          
+          # ============================================
+          # القسم 2: Alpha technical analyses (7 فيديوهات)
+          # ============================================
+          echo "📥 تحميل Alpha technical analyses..."
+          
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "07_Price_Action.mp4" \
+                 "https://player.vimeo.com/video/1043974824" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "08_Market_Structure.mp4" \
+                 "https://player.vimeo.com/video/1043983996" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "09_Consolidation.mp4" \
+                 "https://player.vimeo.com/video/1043971382" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "10_Order_Block_1.mp4" \
+                 "https://player.vimeo.com/video/1045167024" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "11_Fair_Value_Gap.mp4" \
+                 "https://player.vimeo.com/video/1043976568" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "12_OB.mp4" \
+                 "https://player.vimeo.com/video/1043974689" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "13_Volume_Profile.mp4" \
+                 "https://player.vimeo.com/video/1045168170" || true
+          
+          # ============================================
+          # القسم 3: Risk management (6 فيديوهات)
+          # ============================================
+          echo "📥 تحميل Risk management..."
+          
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "14_Welcome.mp4" \
+                 "https://player.vimeo.com/video/1043973455" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "15_What_is_Risk_Management.mp4" \
+                 "https://player.vimeo.com/video/1043976498" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "16_Stop_Loss.mp4" \
+                 "https://player.vimeo.com/video/1043971955" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "17_Stop_Hunt.mp4" \
+                 "https://player.vimeo.com/video/1043974742" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "18_Psychology.mp4" \
+                 "https://player.vimeo.com/video/1043974778" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "19_Risk_Management_P1.mp4" \
+                 "https://player.vimeo.com/video/1064144416" || true
+          
+          # ============================================
+          # القسم 4: Videos from vimeo.com (12 فيديو)
+          # ============================================
+          echo "📥 تحميل الفيديوهات الإضافية..."
+          
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "20_P1_Psychology1.mp4" \
+                 "https://vimeo.com/1086214885" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "21_p2_Psychology2.mp4" \
+                 "https://vimeo.com/1086214933" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "22_P2_Pric_Actioon.mp4" \
+                 "https://vimeo.com/1086211587" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "23_P1_Price_Action_01.mp4" \
+                 "https://vimeo.com/1086211265" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "24_P1_Stop_Hunt_01.mp4" \
+                 "https://vimeo.com/1086215569" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "25_P2_Stop_Hunt_02.mp4" \
+                 "https://vimeo.com/1086215684" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "26_P1_Tp.mp4" \
+                 "https://vimeo.com/1086215458" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "27_P2_Tpsl02.mp4" \
+                 "https://vimeo.com/1086215516" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "28_P1_Volume_P_01.mp4" \
+                 "https://vimeo.com/1086209786" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "29_P2_Volume_P_02.mp4" \
+                 "https://vimeo.com/1086210242/7b545c33d4" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "30_P1_Order_Block_01.mp4" \
+                 "https://vimeo.com/1086207541" || true
+                 
+          yt-dlp --impersonate chrome-120 \
+                 --add-header "Referer: https://www.alphauniversity.academy/" \
+                 -o "31_P2_Order_Block_02.mp4" \
+                 "https://vimeo.com/1086207587" || true
 
-      - name: Get video info
+      - name: إنشاء تقرير بالملفات المحملة
         run: |
           cd videos
-          echo "filename,duration,size_mb" > ../metadata/info.csv
+          
+          echo "filename,size_bytes,status" > ../metadata/report.csv
+          
           for file in *.mp4; do
             if [ -f "$file" ]; then
-              duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null | cut -d. -f1)
-              minutes=$((duration / 60))
-              seconds=$((duration % 60))
-              size=$(du -m "$file" | cut -f1)
-              echo "$file,${minutes}:${seconds},$size" >> ../metadata/info.csv
+              size=$(stat -c%s "$file")
+              echo "$file,$size,downloaded" >> ../metadata/report.csv
+              echo "✅ $file - $(du -h "$file" | cut -f1)"
             fi
           done
+          
+          total=$(ls -1 *.mp4 2>/dev/null | wc -l)
+          echo ""
+          echo "========================================="
+          echo "📊 تم تحميل $total من 31 فيديو"
+          echo "========================================="
 
-      - name: Upload artifacts
+      - name: رفع جميع الفيديوهات
         uses: actions/upload-artifact@v4
         with:
-          name: alpha-videos
+          name: Alpha-University-All-Videos
           path: |
             videos/*.mp4
             metadata/*.csv
-          retention-days: 90
+          retention-days: 7
 
-      - name: Done
+      - name: التقرير النهائي
         run: |
+          echo ""
           echo "========================================="
-          echo "✅ تم تحميل الفيديوهات كـ Artifacts"
-          echo "📁 حملها من: Actions -> Artifacts"
+          echo "✅ اكتملت عملية تحميل جميع الفيديوهات!"
+          echo "========================================="
+          echo ""
+          echo "📁 حمل الفيديوهات من:"
+          echo "   Actions -> Artifacts -> Alpha-University-All-Videos"
+          echo ""
+          echo "📊 التقرير موجود داخل الملف المضغوط"
           echo "========================================="

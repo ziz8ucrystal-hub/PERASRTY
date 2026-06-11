@@ -1,4 +1,4 @@
-name: "Alpha University - Full Backup All Videos"
+name: "Alpha University - Backup Videos"
 
 on:
   workflow_dispatch:
@@ -21,7 +21,6 @@ jobs:
           mkdir -p metadata
 
       - name: Download all 31 videos
-        id: download
         run: |
           cd videos
           
@@ -56,36 +55,30 @@ jobs:
           yt-dlp "https://vimeo.com/1086210242/7b545c33d4" -o "29_P2_Volume_P_02.mp4"
           yt-dlp "https://vimeo.com/1086207541" -o "30_P1_Order_Block_01.mp4"
           yt-dlp "https://vimeo.com/1086207587" -o "31_P2_Order_Block_02.mp4"
-          
-          echo "downloaded=31" >> $GITHUB_OUTPUT
 
       - name: Get video info
         run: |
           cd videos
-          
-          echo "العنوان,المدة,الحجم" > ../metadata/videos_info.csv
-          
+          echo "العنوان,المدة,الحجم" > ../metadata/info.csv
           for file in *.mp4; do
-            if [ -f "$file" ]; then
-              title=$(echo "$file" | sed 's/\.mp4//')
-              duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null | cut -d. -f1)
-              minutes=$((duration / 60))
-              seconds=$((duration % 60))
-              size=$(du -h "$file" | cut -f1)
-              echo "$title,${minutes}:${seconds},$size" >> ../metadata/videos_info.csv
-            fi
+            duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file" | cut -d. -f1)
+            minutes=$((duration / 60))
+            seconds=$((duration % 60))
+            size=$(du -h "$file" | cut -f1)
+            echo "$file,${minutes}:${seconds},$size" >> ../metadata/info.csv
           done
 
-      - name: Upload to Google Drive
-        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          target: "videos/*.mp4,metadata/*.csv"
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
+          name: all-videos
+          path: |
+            videos/*.mp4
+            metadata/*.csv
 
       - name: Done
         run: |
           echo "========================================="
-          echo "✅ تم تحميل 31 فيديو إلى Google Drive"
-          echo "📁 المجلد: https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
+          echo "✅ تم تحميل الفيديوهات كـ Artifacts"
+          echo "📁 حملها من Actions > Artifacts"
           echo "========================================="

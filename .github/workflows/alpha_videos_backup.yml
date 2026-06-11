@@ -12,7 +12,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg jq
+          sudo apt-get install -y ffmpeg
           pip install yt-dlp
 
       - name: Create folders
@@ -25,7 +25,6 @@ jobs:
         run: |
           cd videos
           
-          # All 31 videos
           yt-dlp "https://player.vimeo.com/video/1044120852" -o "01_The_Basics_Part_1.mp4"
           yt-dlp "https://player.vimeo.com/video/1044120914" -o "02_The_Basics_Part_2.mp4"
           yt-dlp "https://player.vimeo.com/video/1044120961" -o "03_The_Basics_Part_3.mp4"
@@ -58,11 +57,9 @@ jobs:
           yt-dlp "https://vimeo.com/1086207541" -o "30_P1_Order_Block_01.mp4"
           yt-dlp "https://vimeo.com/1086207587" -o "31_P2_Order_Block_02.mp4"
           
-          # Count successful downloads
           count=$(ls -1 *.mp4 2>/dev/null | wc -l)
           echo "downloaded=$count" >> $GITHUB_OUTPUT
           
-          # List all files
           echo ""
           echo "========== DOWNLOADED VIDEOS =========="
           ls -lh *.mp4
@@ -72,7 +69,6 @@ jobs:
         run: |
           cd videos
           
-          # Create CSV with all video info
           echo "filename,title,duration_seconds,duration_formatted,size_mb" > ../metadata/videos_info.csv
           
           for file in *.mp4; do
@@ -84,20 +80,13 @@ jobs:
               size_mb=$(du -m "$file" | cut -f1)
               
               echo "$file,$title,$duration,${minutes}:${seconds},$size_mb" >> ../metadata/videos_info.csv
-              
-              # Create individual JSON for each video
-              cat > "../metadata/${file}.json" << EOF
-{
-  "filename": "$file",
-  "title": "$title",
-  "duration_seconds": $duration,
-  "duration_formatted": "${minutes}:${seconds}",
-  "size_mb": $size_mb,
-  "status": "success"
-}
-EOF
             fi
           done
+          
+          echo ""
+          echo "========== METADATA CREATED =========="
+          cat ../metadata/videos_info.csv
+          echo "========================================"
 
       - name: Upload videos to Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
@@ -109,7 +98,7 @@ EOF
       - name: Upload metadata to Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
         with:
-          target: "metadata/*"
+          target: "metadata/*.csv"
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
           parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
 
@@ -124,8 +113,7 @@ EOF
           echo ""
           echo "📁 Files uploaded to Google Drive:"
           echo "   - videos/ (31 MP4 files)"
-          echo "   - metadata/videos_info.csv (all video info)"
-          echo "   - metadata/*.json (individual video metadata)"
+          echo "   - metadata/videos_info.csv (all video info: title, duration, size)"
           echo ""
           echo "🔗 Google Drive folder:"
           echo "   https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"

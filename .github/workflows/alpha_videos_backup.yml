@@ -1,15 +1,15 @@
 # ============================================
-# ملف: .github/workflows/all_videos_complete.yml
-# تحميل جميع فيديوهات Alpha University (بدون اختصار)
+# ملف: .github/workflows/auto_upload_to_drive.yml
+# تحميل جميع الفيديوهات ورفعها تلقائياً إلى Google Drive
 # ============================================
 
-name: "Alpha University - جميع الفيديوهات كاملة"
+name: "تحميل ورفع فيديوهات Alpha إلى Google Drive"
 
 on:
   workflow_dispatch:
 
 jobs:
-  download-all:
+  download-and-upload:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     
@@ -20,17 +20,27 @@ jobs:
           sudo apt-get install -y ffmpeg
           pip install yt-dlp
 
+      - name: تثبيت rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: إعداد rclone
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
       - name: إنشاء المجلد
         run: mkdir -p videos
 
-      - name: تحميل جميع الفيديوهات (31 فيديو)
+      - name: تحميل جميع الفيديوهات
         run: |
           cd videos
           
           echo "========================================="
-          echo "🎬 بدء تحميل 31 فيديو من Alpha University"
+          echo "🎬 بدء تحميل جميع الفيديوهات"
           echo "========================================="
-          echo ""
           
           # ========================================
           # الفيديو 1
@@ -315,22 +325,27 @@ jobs:
           echo "========================================="
           echo "✅ اكتمل تحميل جميع الفيديوهات"
           echo "========================================="
-          
-          # عرض الملفات المحملة
-          echo ""
-          echo "📊 الملفات التي تم تحميلها:"
-          ls -lh *.mp4 2>/dev/null
-          
-          count=$(ls -1 *.mp4 2>/dev/null | wc -l)
-          echo ""
-          echo "📊 عدد الفيديوهات المحملة: $count من 31"
+          ls -lh *.mp4 2>/dev/null | wc -l | xargs echo "📊 عدد الفيديوهات المحملة:"
 
-      - name: رفع الفيديوهات كـ Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Alpha-University-Complete-31-Videos
-          path: videos/*.mp4
-          retention-days: 14
+      - name: رفع جميع الفيديوهات إلى Google Drive
+        run: |
+          echo ""
+          echo "========================================="
+          echo "📤 بدء رفع الفيديوهات إلى Google Drive"
+          echo "========================================="
+          
+          # رفع كل مجلد videos إلى Drive
+          rclone copy videos/ gdrive:Alpha_University_Videos/ \
+            --progress \
+            --verbose \
+            --transfers 4 \
+            --checkers 8 \
+            --retries 5
+          
+          echo ""
+          echo "========================================="
+          echo "✅ تم رفع جميع الفيديوهات إلى Google Drive"
+          echo "========================================="
 
       - name: التقرير النهائي
         run: |
@@ -339,7 +354,11 @@ jobs:
           echo "🎉 اكتملت العملية بنجاح!"
           echo "========================================="
           echo ""
-          echo "📁 جميع الفيديوهات موجودة في Artifacts"
-          echo "   Actions → Artifacts → Alpha-University-Complete-31-Videos"
+          echo "📁 جميع الفيديوهات موجودة الآن في:"
+          echo "   https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
+          echo ""
+          echo "📊 إحصائيات:"
+          echo "   🎬 عدد الفيديوهات: $(ls videos/*.mp4 2>/dev/null | wc -l) من 31"
+          echo "   💾 الحجم الإجمالي: $(du -sh videos/ | cut -f1)"
           echo ""
           echo "========================================="

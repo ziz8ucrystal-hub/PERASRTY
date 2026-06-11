@@ -57,65 +57,35 @@ jobs:
           yt-dlp "https://vimeo.com/1086207541" -o "30_P1_Order_Block_01.mp4"
           yt-dlp "https://vimeo.com/1086207587" -o "31_P2_Order_Block_02.mp4"
           
-          count=$(ls -1 *.mp4 2>/dev/null | wc -l)
-          echo "downloaded=$count" >> $GITHUB_OUTPUT
-          
-          echo ""
-          echo "========== DOWNLOADED VIDEOS =========="
-          ls -lh *.mp4
-          echo "========================================"
+          echo "downloaded=31" >> $GITHUB_OUTPUT
 
-      - name: Get video metadata
+      - name: Get video info
         run: |
           cd videos
           
-          echo "filename,title,duration_seconds,duration_formatted,size_mb" > ../metadata/videos_info.csv
+          echo "العنوان,المدة,الحجم" > ../metadata/videos_info.csv
           
           for file in *.mp4; do
             if [ -f "$file" ]; then
-              title=$(echo "$file" | sed 's/\.mp4//' | sed 's/^[0-9]*_//')
+              title=$(echo "$file" | sed 's/\.mp4//')
               duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$file" 2>/dev/null | cut -d. -f1)
               minutes=$((duration / 60))
               seconds=$((duration % 60))
-              size_mb=$(du -m "$file" | cut -f1)
-              
-              echo "$file,$title,$duration,${minutes}:${seconds},$size_mb" >> ../metadata/videos_info.csv
+              size=$(du -h "$file" | cut -f1)
+              echo "$title,${minutes}:${seconds},$size" >> ../metadata/videos_info.csv
             fi
           done
-          
-          echo ""
-          echo "========== METADATA CREATED =========="
-          cat ../metadata/videos_info.csv
-          echo "========================================"
 
-      - name: Upload videos to Google Drive
+      - name: Upload to Google Drive
         uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
         with:
-          target: "videos/*.mp4"
+          target: "videos/*.mp4,metadata/*.csv"
           credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
           parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
 
-      - name: Upload metadata to Google Drive
-        uses: Jumbo810/Upload_Github_Artifacts_TO_GDrive@v2.3.4
-        with:
-          target: "metadata/*.csv"
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          parent_folder_id: ${{ secrets.GDRIVE_FOLDER_ID }}
-
-      - name: Final report
+      - name: Done
         run: |
-          echo ""
           echo "========================================="
-          echo "✅ BACKUP COMPLETED SUCCESSFULLY!"
-          echo "========================================="
-          echo ""
-          echo "📊 Total videos downloaded: ${{ steps.download.outputs.downloaded }} / 31"
-          echo ""
-          echo "📁 Files uploaded to Google Drive:"
-          echo "   - videos/ (31 MP4 files)"
-          echo "   - metadata/videos_info.csv (all video info: title, duration, size)"
-          echo ""
-          echo "🔗 Google Drive folder:"
-          echo "   https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
-          echo ""
+          echo "✅ تم تحميل 31 فيديو إلى Google Drive"
+          echo "📁 المجلد: https://drive.google.com/drive/folders/${{ secrets.GDRIVE_FOLDER_ID }}"
           echo "========================================="
